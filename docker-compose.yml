@@ -62,7 +62,7 @@ services:
       - 5000
     ports:
       - 5000:5000  # map container port → host machine port
-    #restart: on-failure
+    restart: on-failure
   
   database-dev:
     image: mongo
