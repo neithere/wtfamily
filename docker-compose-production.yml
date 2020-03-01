@@ -1,0 +1,70 @@
+#
+# WTFamily config for production (no hot reload, optimized)
+#
+version: '3'
+
+# TODO: use variables
+#
+# Questions:
+# - exposing both FE and BE to outer world
+#   - different ports? (current solution)
+#   - nginx wrapper w/routing?
+#     - then FE/BE containers are not directly accessible but via different
+#       mount points on nginx
+
+services:
+  # TODO: NOT LIKE THIS! the idea is that an ephemeral container acts
+  #       as the CLI for the WTFamily service, approximately like this:
+  #       https://preslav.me/2019/03/18/using-ephemeral-docker-containers-as-cli-applications/
+  #       However, it doesn't make sense to launch it via docker-compose.
+  #       For now we just import the GrampsXML file every time on build, which
+  #       doesn't make sense either in long term.
+  #cli-app:
+  #  container-name: wtfamily-cli
+
+  web:
+    container_name: wtfamily-webapp-prod
+    build: ../wtfamily-fe
+    depends_on:
+      - service
+    networks:
+      - frontend
+    expose:
+      - 8080
+    ports:
+      - 8080:8080
+    restart: on-failure
+  
+  service:
+    container_name: wtfamily-service-prod
+    build: ../wtfamily-be
+    depends_on:
+      - database
+    networks:
+      - frontend
+      - backend
+    expose:
+      - 5000
+    ports:
+      - 5000:5000  # map container port → host machine port
+    #restart: on-failure
+  
+  database:
+    image: mongo
+    container_name: wtfamily-database-prod
+    environment:
+      - MONGO_INITDB_DATABASE=wtfamily
+      - MONGO_INITDB_ROOT_USERNAME=wtfamily
+      - MONGO_INITDB_ROOT_PASSWORD=my-wtfamily-pwd
+    volumes:
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      - ./mongo-volume:/data/db
+    ports:
+      - '27017-27019:27017-27019'
+    networks:
+      - backend
+
+networks:
+  frontend:
+  backend:
+    internal: true

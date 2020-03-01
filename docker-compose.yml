@@ -1,0 +1,85 @@
+#
+# WTFamily config for development (hot-reload support for all apps)
+#
+version: '3'
+
+# TODO: use variables
+#
+# Questions:
+# - exposing both FE and BE to outer world
+#   - different ports? (current solution)
+#   - nginx wrapper w/routing?
+#     - then FE/BE containers are not directly accessible but via different
+#       mount points on nginx
+
+services:
+  # TODO: NOT LIKE THIS! the idea is that an ephemeral container acts
+  #       as the CLI for the WTFamily service, approximately like this:
+  #       https://preslav.me/2019/03/18/using-ephemeral-docker-containers-as-cli-applications/
+  #       However, it doesn't make sense to launch it via docker-compose.
+  #       For now we just import the GrampsXML file every time on build, which
+  #       doesn't make sense either in long term.
+  #cli-app:
+  #  container-name: wtfamily-cli
+
+  web-dev:
+    container_name: wtfamily-webapp-dev
+    build:
+      context: ../wtfamily-fe
+      dockerfile: Dockerfile-dev
+    volumes:
+      - ../wtfamily-fe/src:/usr/src/app/src
+    depends_on:
+      - service-dev
+    networks:
+      - frontend
+    expose:
+      - 8080
+    ports:
+      - 8080:8080
+    restart: on-failure
+  
+  service-dev:
+    container_name: wtfamily-service-dev
+    build:
+      context: ../wtfamily-be
+      dockerfile: Dockerfile-dev
+    environment:
+      - WTFAMILY_CONFIG=/etc/wtfamily.yaml
+      - WTFAMILY_DATABASE_URI=mongodb://wtfamily:my-wtfamily-pwd@database-dev:27017
+      - WTFAMILY_DATABASE_NAME=wtfamily-from-grampsxml
+    volumes:
+      # TODO: make it work without the config
+      - ./service-config.yaml:/etc/wtfamily.yaml:ro
+
+      - ../wtfamily-be/wtfamily:/usr/src/app
+    depends_on:
+      - database-dev
+    networks:
+      - frontend
+      - backend
+    expose:
+      - 5000
+    ports:
+      - 5000:5000  # map container port → host machine port
+    #restart: on-failure
+  
+  database-dev:
+    image: mongo
+    container_name: wtfamily-database-dev
+    environment:
+      - MONGO_INITDB_DATABASE=wtfamily-from-grampsxml
+      - MONGO_INITDB_ROOT_USERNAME=wtfamily
+      - MONGO_INITDB_ROOT_PASSWORD=my-wtfamily-pwd
+    volumes:
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      - ./mongo-volume:/data/db
+    ports:
+      - '27017-27019:27017-27019'
+    networks:
+      - backend
+
+networks:
+  frontend:
+  backend:
+    internal: true
