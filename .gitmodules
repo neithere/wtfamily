@@ -1,6 +1,6 @@
-[submodule "wtfamily-fe"]
-	path = wtfamily-fe
+[submodule "app"]
+	path = app
 	url = git@github.com:neithere/wtfamily-fe.git
-[submodule "wtfamily-be"]
-	path = wtfamily-be
+[submodule "service"]
+	path = service
 	url = git@github.com:neithere/wtfamily-be.git

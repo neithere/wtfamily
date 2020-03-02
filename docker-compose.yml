@@ -25,10 +25,10 @@ services:
   web-dev:
     container_name: wtfamily-webapp-dev
     build:
-      context: ./wtfamily-fe
+      context: ./app
       dockerfile: Dockerfile-dev
     volumes:
-      - ./wtfamily-fe/src:/usr/src/app/src
+      - ./app/src:/usr/src/app/src
     depends_on:
       - service-dev
     networks:
@@ -42,7 +42,7 @@ services:
   service-dev:
     container_name: wtfamily-service-dev
     build:
-      context: ./wtfamily-be
+      context: ./service
       dockerfile: Dockerfile-dev
     environment:
       - WTFAMILY_CONFIG=/etc/wtfamily.yaml
@@ -52,7 +52,7 @@ services:
       # TODO: make it work without the config
       - ./service-config.yaml:/etc/wtfamily.yaml:ro
 
-      - ./wtfamily-be/wtfamily:/usr/src/app
+      - ./service/wtfamily:/usr/src/app
     depends_on:
       - database-dev
     networks:
