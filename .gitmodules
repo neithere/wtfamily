@@ -1,0 +1,6 @@
+[submodule "wtfamily-fe"]
+	path = wtfamily-fe
+	url = git@github.com:neithere/wtfamily-fe.git
+[submodule "wtfamily-be"]
+	path = wtfamily-be
+	url = git@github.com:neithere/wtfamily-be.git
